@@ -144,6 +144,7 @@
 	  overflow-y: auto;
 	  overflow-x: hidden;
       min-width: 120px;
+	  max-width: 400px;
       background: #111;
       border-radius: 0.3rem;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
@@ -290,6 +291,15 @@
 	  transform: translate(-50%, 0%);
 	  top: 100%;
 	}
+	.guest-highlight {
+	  background-color: #ffeb3b;
+	  color: #000;
+	  border-radius: 0.3rem;
+	  padding: 0 0.3rem;
+	}
+	#guestModalContent div {
+	  margin-bottom: 0.3rem;
+	}
     /* Адаптив (небольшое упрощение) */
     @media (max-width: 600px) {
 		body {
@@ -399,7 +409,14 @@
     <button id="searchBtn">Найти</button>
   </div>
 </div>
-
+<!-- Модальное окно гостей -->
+<div class="modal-overlay" id="guestModalOverlay">
+  <div class="modal">
+    <button class="close-btn" id="closeGuestModalBtn">×</button>
+    <h2 id="guestModalTitle">Гости стола</h2>
+    <div id="guestModalContent"></div>
+  </div>
+</div>
 <script>
 // --------------------- ДАННЫЕ ---------------------
 const tablesData = [
@@ -424,6 +441,11 @@ const openSearchBtnBottom = document.getElementById("openSearchBtnBottom");
 const searchBtn = document.getElementById("searchBtn");
 const searchInput = document.getElementById("searchInput");
 
+const guestModalOverlay = document.getElementById("guestModalOverlay");
+const guestModalTitle = document.getElementById("guestModalTitle");
+const guestModalContent = document.getElementById("guestModalContent");
+const closeGuestModalBtn = document.getElementById("closeGuestModalBtn");
+
 // Текущий выбранный стол (ID) + поповер
 let currentSelectedTableId = null;
 
@@ -438,12 +460,33 @@ searchInput.addEventListener("keydown", (e) => {
     searchGuest();
   }
 });
+
+
+closeGuestModalBtn.addEventListener("click", () => {
+  guestModalOverlay.style.display = "none";
+});
 // Клик по оверлею - закрыть модалку, если хочется
 modalOverlay.addEventListener("click", (e) => {
   if (e.target === modalOverlay) closeModal();
 });
 
 // --------------------- ФУНКЦИИ ---------------------
+
+function showGuestModal(table, highlightQuery = "") {
+  guestModalTitle.textContent = `Стол #${table.id}`;
+  guestModalContent.innerHTML = ""; // очистить
+
+  table.guests.forEach(name => {
+    const line = document.createElement("div");
+    if (highlightQuery && name.toLowerCase().includes(highlightQuery)) {
+      line.classList.add("guest-highlight");
+    }
+    line.textContent = name;
+    guestModalContent.appendChild(line);
+  });
+
+  guestModalOverlay.style.display = "flex";
+}
 
 function renderTables() {
   tablesData.forEach(table => {
@@ -479,7 +522,8 @@ function renderTables() {
 
       tableDiv.classList.add("highlight");
       currentSelectedTableId = clickedId;
-      showPopover(table, tableDiv);
+      //showPopover(table, tableDiv);
+	  showGuestModal(table);
     };
 
     tableDiv.addEventListener("click", handleClick);
@@ -559,6 +603,22 @@ function showPopover(table, tableDiv) {
     }
 
     popover.classList.add("visible");
+	['click', 'touchstart'].forEach(eventName => {
+		document.addEventListener(eventName, handleOutsideClick);
+	  });
+
+	  function handleOutsideClick(e) {
+		const isClickInsidePopover = popover.contains(e.target);
+		const isClickInsideTable = tableDiv.contains(e.target);
+		if (!popover.contains(e.target)) {
+		  removeHighlight(table.id);
+		  removePopover(table.id);
+		  currentSelectedTableId = null;
+		  ['click', 'touchstart'].forEach(eventName => {
+			document.removeEventListener(eventName, handleOutsideClick);
+		  });
+		}
+	  }
   });
 }
 
@@ -578,7 +638,6 @@ function removeHighlight(tableId) {
 // Поиск
 function searchGuest() {
   const query = searchInput.value.trim().toLowerCase();
-  // Убрать подсветку у всех столов
   const allTables = hallContainer.querySelectorAll(".table-block");
   allTables.forEach(t => t.classList.remove("highlight"));
 
@@ -588,29 +647,20 @@ function searchGuest() {
   }
 
   let foundAny = false;
+
   tablesData.forEach(table => {
     const match = table.guests.some(g => g.toLowerCase().includes(query));
     if (match) {
-      // Подсвечиваем
       const tDiv = hallContainer.querySelector(`[data-table-id='${table.id}']`);
-      if (tDiv) tDiv.classList.add("highlight");
+      if (tDiv) {
+        tDiv.classList.add("highlight");
+        showGuestModal(table, query);
+      }
       foundAny = true;
     }
   });
 
-  if (!foundAny) {
-    alert("Ничего не найдено!");
-  }
-
-  // Если текущий выделенный стол НЕ входит в результаты - уберём поповер
-  if (currentSelectedTableId !== null) {
-    const currentTableDiv = hallContainer.querySelector(`[data-table-id='${currentSelectedTableId}']`);
-    if (currentTableDiv && !currentTableDiv.classList.contains("highlight")) {
-      removePopover(currentSelectedTableId);
-      currentSelectedTableId = null;
-    }
-  }
-
+  if (!foundAny) alert("Ничего не найдено!");
   closeModal();
 }
 
@@ -624,91 +674,6 @@ function closeModal() {
   modalOverlay.style.display = "none";
 }
 
-// Drag & Drop
-//function enableDragAndDrop(element) {
-//  let isDragging = false;
-//  let offsetX = 0;
-//  let offsetY = 0;
-//
-//  element.addEventListener("mousedown", onMouseDown);
-//  element.addEventListener("touchstart", (e) => {
-//    const touch = e.touches[0];
-//    onMouseDown(touch);
-//    e.preventDefault();
-//  }, { passive: false });
-//
-//  function onMouseDown(e) {
-//    if (e.button !== undefined && e.button !== 0) return;
-//    isDragging = true;
-//
-//    // Сохраняем смещение
-//    offsetX = e.clientX - element.getBoundingClientRect().left;
-//    offsetY = e.clientY - element.getBoundingClientRect().top;
-//
-//    document.addEventListener("mousemove", onMouseMove);
-//    document.addEventListener("mouseup", onMouseUp);
-//    document.addEventListener("touchmove", onTouchMove, { passive: false });
-//    document.addEventListener("touchend", onTouchEnd, { passive: false });
-//
-//    // Можно убирать поповер, если не хотим мешать движению
-//    // removePopover(element.dataset.tableId);
-//  }
-//
-//  function onMouseMove(e) {
-//    if (!isDragging) return;
-//    dragElement(e.clientX, e.clientY);
-//  }
-//
-//  function onMouseUp() {
-//    isDragging = false;
-//    document.removeEventListener("mousemove", onMouseMove);
-//    document.removeEventListener("mouseup", onMouseUp);
-//    document.removeEventListener("touchmove", onTouchMove);
-//    document.removeEventListener("touchend", onTouchEnd);
-//  }
-//
-//  function onTouchMove(e) {
-//    if (!isDragging) return;
-//    e.preventDefault();
-//    const touch = e.touches[0];
-//    dragElement(touch.clientX, touch.clientY);
-//  }
-//
-//  function onTouchEnd() {
-//    isDragging = false;
-//    document.removeEventListener("touchmove", onTouchMove);
-//    document.removeEventListener("touchend", onTouchEnd);
-//  }
-//
-//  function dragElement(clientX, clientY) {
-//    const containerRect = hallContainer.getBoundingClientRect();
-//    const elemRect = element.getBoundingClientRect();
-//
-//    let newLeftPx = clientX - containerRect.left - offsetX;
-//    let newTopPx = clientY - containerRect.top - offsetY;
-//
-//    const containerWidth = hallContainer.offsetWidth;
-//    const containerHeight = hallContainer.offsetHeight;
-//
-//    let newLeftPercent = (newLeftPx / containerWidth) * 100;
-//    let newTopPercent = (newTopPx / containerHeight) * 100;
-//
-//    // Ограничим, чтобы не выходить за границы
-//    const elemWidth = elemRect.width;
-//    const elemHeight = elemRect.height;
-//    const maxLeftPercent = 100 - (elemWidth / containerWidth * 100);
-//    const maxTopPercent = 100 - (elemHeight / containerHeight * 100);
-//
-//    if (newLeftPercent < 0) newLeftPercent = 0;
-//    if (newLeftPercent > maxLeftPercent) newLeftPercent = maxLeftPercent;
-//    if (newTopPercent < 0) newTopPercent = 0;
-//    if (newTopPercent > maxTopPercent) newTopPercent = maxTopPercent;
-//
-//    element.style.left = newLeftPercent + "%";
-//    element.style.top = newTopPercent + "%";
-//  }
-//}
 </script>
-
 </body>
 </html>
