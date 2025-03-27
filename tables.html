@@ -80,7 +80,8 @@
     /* -- Контейнер зала -- */
     .hall-container {
       /* width: 100%;
-	  height: 100%
+	  height: 100%;
+	  min-height: 60vh;
       max-width: 1000px; */
 	  flex: 1;
       /* aspect-ratio: 16 / 32;    Задаём пропорцию 16:9 */  
@@ -139,6 +140,9 @@
     /* Поповер (окошко с гостями) */
     .popover {
       position: absolute;
+	  max-height: 200px;
+	  overflow-y: auto;
+	  overflow-x: hidden;
       min-width: 120px;
       background: #111;
       border-radius: 0.3rem;
@@ -183,6 +187,13 @@
     .popover .close-popover:hover {
       color: #444;
     }
+	.popover::-webkit-scrollbar {
+	  width: 6px;
+	}
+	.popover::-webkit-scrollbar-thumb {
+	  background: rgba(255, 255, 255, 0.3);
+	  border-radius: 4px;
+	}
 
     /* Модальное окно поиска */
     .modal-overlay {
@@ -346,6 +357,12 @@
 	  .table-block h3 {
 			font-size: 1.4rem;
 		}
+	}
+	@media (orientation: landscape) {
+	  .hall-container {
+		height: 100vh;
+		overflow-y: auto;
+	  }
 	}
 
   </style>
