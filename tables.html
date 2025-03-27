@@ -108,7 +108,8 @@
     /* -- Столы -- */
     .table-block {
       position: absolute;
-      width: 7%;
+      width: 12%;
+	  height: 7%;
       aspect-ratio: auto;
       border-radius: 0.3rem; 
       background: linear-gradient(to bottom right, #e2e8f0, #cbd5e0);
@@ -319,7 +320,8 @@
 			font-size: 1.1rem;
 		}
 		.table-block {
-		   width: 22% !important;
+		   width: 16% !important;
+		   height: 12% !important;
 		   margin-bottom: 1rem;
 		}
 		.stage {
@@ -339,7 +341,7 @@
 	}
 	@media (min-width: 601px) and (max-width: 900px) {
 	  .table-block {
-			width: 14%;
+			width: 16%;
 		}	
 	  .table-block h3 {
 			font-size: 1.4rem;
@@ -384,16 +386,16 @@
 <script>
 // --------------------- ДАННЫЕ ---------------------
 const tablesData = [
-  { id: 1, left: 10,  top: 10, guests: ["Иванов", "Петров", "Сидоров", "Михайлов", "Фёдоров", "Кузнецов", "Егоров", "Зайцев"] },
+  { id: 1, left: 10,  top: 15, guests: ["Иванов", "Петров", "Сидоров", "Михайлов", "Фёдоров", "Кузнецов", "Егоров", "Зайцев"] },
   { id: 2, left: 15,  top: 30, guests: ["Алексеев", "Васильев", "Григорьев", "Жуков", "Ильин", "Крылов", "Лебедев", "Макаров"] },
-  { id: 3, left: 20,  top: 50, guests: ["Никитин", "Орлов", "Павлов", "Романов", "Семенов", "Тарасов", "Ушаков", "Фролов"] },
+  { id: 3, left: 20,  top: 45, guests: ["Никитин", "Орлов", "Павлов", "Романов", "Семенов", "Тарасов", "Ушаков", "Фролов"] },
   { id: 4, left: 10,  top: 60, guests: ["Харитонов", "Цветков", "Чистов", "Шестаков", "Щербаков", "Эмиров", "Юдин", "Яковлев"] },
-  { id: 5, left: 15,  top: 80, guests: ["Абрамов", "Беляев", "Виноградов", "Горшков", "Демидов", "Ершов", "Жданов", "Злобин"] },
-  { id: 6, right: 10, top: 10, guests: ["Игнатов", "Климов", "Лапин", "Мартынов", "Носов", "Овчинников", "Пономарёв", "Рябов"] },
+  { id: 5, left: 15,  top: 75, guests: ["Абрамов", "Беляев", "Виноградов", "Горшков", "Демидов", "Ершов", "Жданов", "Злобин"] },
+  { id: 6, right: 10, top: 15, guests: ["Игнатов", "Климов", "Лапин", "Мартынов", "Носов", "Овчинников", "Пономарёв", "Рябов"] },
   { id: 7, right: 15, top: 30, guests: ["Соловьев", "Тихонов", "Уваров", "Федосеев", "Хохлов", "Царев", "Чижов", "Шаповалов"] },
-  { id: 8, right: 20, top: 50, guests: ["Щукин", "Эртель", "Юмашев", "Яшин", "Анисимов", "Буров", "Воронцов", "Гаврилов"] },
+  { id: 8, right: 20, top: 45, guests: ["Щукин", "Эртель", "Юмашев", "Яшин", "Анисимов", "Буров", "Воронцов", "Гаврилов"] },
   { id: 9, right: 10, top: 60, guests: ["Дьячков", "Евсеев", "Жарков", "Зотов", "Исаев", "Карпов", "Лавров", "Мещеряков"] },
-  { id: 10, right: 15, top: 80, guests: ["Никифоров Денис", "Озернов", "Пестов", "Русаков", "Савин", "Титов", "Ульянов", "Фомин"] }
+  { id: 10, right: 15, top: 75, guests: ["Никифоров Денис", "Озернов", "Пестов", "Русаков", "Савин", "Титов", "Ульянов", "Фомин"] }
 ];
 const hallContainer = document.getElementById("hallContainer");
 
@@ -464,7 +466,10 @@ function renderTables() {
     };
 
     tableDiv.addEventListener("click", handleClick);
-    tableDiv.addEventListener("touchend", handleClick);
+    tableDiv.addEventListener("touchstart", (e) => {
+	  e.preventDefault(); // предотвращает задержку и контекстное меню
+	  handleClick(e);
+	}, { passive: false }); // обязательно указываем passive: false, чтобы работал preventDefault
 
     //enableDragAndDrop(tableDiv);
     hallContainer.appendChild(tableDiv);
@@ -603,89 +608,89 @@ function closeModal() {
 }
 
 // Drag & Drop
-function enableDragAndDrop(element) {
-  let isDragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  element.addEventListener("mousedown", onMouseDown);
-  element.addEventListener("touchstart", (e) => {
-    const touch = e.touches[0];
-    onMouseDown(touch);
-    e.preventDefault();
-  }, { passive: false });
-
-  function onMouseDown(e) {
-    if (e.button !== undefined && e.button !== 0) return;
-    isDragging = true;
-
-    // Сохраняем смещение
-    offsetX = e.clientX - element.getBoundingClientRect().left;
-    offsetY = e.clientY - element.getBoundingClientRect().top;
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd, { passive: false });
-
-    // Можно убирать поповер, если не хотим мешать движению
-    // removePopover(element.dataset.tableId);
-  }
-
-  function onMouseMove(e) {
-    if (!isDragging) return;
-    dragElement(e.clientX, e.clientY);
-  }
-
-  function onMouseUp() {
-    isDragging = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-    document.removeEventListener("touchmove", onTouchMove);
-    document.removeEventListener("touchend", onTouchEnd);
-  }
-
-  function onTouchMove(e) {
-    if (!isDragging) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    dragElement(touch.clientX, touch.clientY);
-  }
-
-  function onTouchEnd() {
-    isDragging = false;
-    document.removeEventListener("touchmove", onTouchMove);
-    document.removeEventListener("touchend", onTouchEnd);
-  }
-
-  function dragElement(clientX, clientY) {
-    const containerRect = hallContainer.getBoundingClientRect();
-    const elemRect = element.getBoundingClientRect();
-
-    let newLeftPx = clientX - containerRect.left - offsetX;
-    let newTopPx = clientY - containerRect.top - offsetY;
-
-    const containerWidth = hallContainer.offsetWidth;
-    const containerHeight = hallContainer.offsetHeight;
-
-    let newLeftPercent = (newLeftPx / containerWidth) * 100;
-    let newTopPercent = (newTopPx / containerHeight) * 100;
-
-    // Ограничим, чтобы не выходить за границы
-    const elemWidth = elemRect.width;
-    const elemHeight = elemRect.height;
-    const maxLeftPercent = 100 - (elemWidth / containerWidth * 100);
-    const maxTopPercent = 100 - (elemHeight / containerHeight * 100);
-
-    if (newLeftPercent < 0) newLeftPercent = 0;
-    if (newLeftPercent > maxLeftPercent) newLeftPercent = maxLeftPercent;
-    if (newTopPercent < 0) newTopPercent = 0;
-    if (newTopPercent > maxTopPercent) newTopPercent = maxTopPercent;
-
-    element.style.left = newLeftPercent + "%";
-    element.style.top = newTopPercent + "%";
-  }
-}
+//function enableDragAndDrop(element) {
+//  let isDragging = false;
+//  let offsetX = 0;
+//  let offsetY = 0;
+//
+//  element.addEventListener("mousedown", onMouseDown);
+//  element.addEventListener("touchstart", (e) => {
+//    const touch = e.touches[0];
+//    onMouseDown(touch);
+//    e.preventDefault();
+//  }, { passive: false });
+//
+//  function onMouseDown(e) {
+//    if (e.button !== undefined && e.button !== 0) return;
+//    isDragging = true;
+//
+//    // Сохраняем смещение
+//    offsetX = e.clientX - element.getBoundingClientRect().left;
+//    offsetY = e.clientY - element.getBoundingClientRect().top;
+//
+//    document.addEventListener("mousemove", onMouseMove);
+//    document.addEventListener("mouseup", onMouseUp);
+//    document.addEventListener("touchmove", onTouchMove, { passive: false });
+//    document.addEventListener("touchend", onTouchEnd, { passive: false });
+//
+//    // Можно убирать поповер, если не хотим мешать движению
+//    // removePopover(element.dataset.tableId);
+//  }
+//
+//  function onMouseMove(e) {
+//    if (!isDragging) return;
+//    dragElement(e.clientX, e.clientY);
+//  }
+//
+//  function onMouseUp() {
+//    isDragging = false;
+//    document.removeEventListener("mousemove", onMouseMove);
+//    document.removeEventListener("mouseup", onMouseUp);
+//    document.removeEventListener("touchmove", onTouchMove);
+//    document.removeEventListener("touchend", onTouchEnd);
+//  }
+//
+//  function onTouchMove(e) {
+//    if (!isDragging) return;
+//    e.preventDefault();
+//    const touch = e.touches[0];
+//    dragElement(touch.clientX, touch.clientY);
+//  }
+//
+//  function onTouchEnd() {
+//    isDragging = false;
+//    document.removeEventListener("touchmove", onTouchMove);
+//    document.removeEventListener("touchend", onTouchEnd);
+//  }
+//
+//  function dragElement(clientX, clientY) {
+//    const containerRect = hallContainer.getBoundingClientRect();
+//    const elemRect = element.getBoundingClientRect();
+//
+//    let newLeftPx = clientX - containerRect.left - offsetX;
+//    let newTopPx = clientY - containerRect.top - offsetY;
+//
+//    const containerWidth = hallContainer.offsetWidth;
+//    const containerHeight = hallContainer.offsetHeight;
+//
+//    let newLeftPercent = (newLeftPx / containerWidth) * 100;
+//    let newTopPercent = (newTopPx / containerHeight) * 100;
+//
+//    // Ограничим, чтобы не выходить за границы
+//    const elemWidth = elemRect.width;
+//    const elemHeight = elemRect.height;
+//    const maxLeftPercent = 100 - (elemWidth / containerWidth * 100);
+//    const maxTopPercent = 100 - (elemHeight / containerHeight * 100);
+//
+//    if (newLeftPercent < 0) newLeftPercent = 0;
+//    if (newLeftPercent > maxLeftPercent) newLeftPercent = maxLeftPercent;
+//    if (newTopPercent < 0) newTopPercent = 0;
+//    if (newTopPercent > maxTopPercent) newTopPercent = maxTopPercent;
+//
+//    element.style.left = newLeftPercent + "%";
+//    element.style.top = newTopPercent + "%";
+//  }
+//}
 </script>
 
 </body>
