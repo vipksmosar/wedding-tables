@@ -108,9 +108,9 @@
     /* -- Столы -- */
     .table-block {
       position: absolute;
-      width: 8%;
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
+      width: 12%;
+      aspect-ratio: auto;
+      border-radius: 0.3rem; 
       background: linear-gradient(to bottom right, #e2e8f0, #cbd5e0);
       display: flex;
       align-items: center;
@@ -500,32 +500,42 @@ function showPopover(table, tableDiv) {
   });
   popover.appendChild(ul);
 
-  // Вставляем, но ещё не показываем
+  // Вставим, чтобы можно было измерить размеры
   tableDiv.appendChild(popover);
 
-  // Сначала присвоим невидимый стиль, чтобы можно было измерить
-  popover.style.visibility = "hidden";
-  popover.classList.add("popover-below"); // временно
-
   requestAnimationFrame(() => {
+    const containerRect = hallContainer.getBoundingClientRect();
     const popoverRect = popover.getBoundingClientRect();
     const tableRect = tableDiv.getBoundingClientRect();
-    const hallRect = hallContainer.getBoundingClientRect();
 
-    const spaceAbove = tableRect.top - hallRect.top;
-    const spaceBelow = hallRect.bottom - tableRect.bottom;
+    const spaceAbove = tableRect.top - containerRect.top;
+    const spaceBelow = containerRect.bottom - tableRect.bottom;
+    const spaceRight = containerRect.right - tableRect.right;
+    const spaceLeft = tableRect.left - containerRect.left;
 
-    // Удалим временное позиционирование
-    popover.classList.remove("popover-above", "popover-below");
-
-    // Решаем, куда открывать
-    if (spaceBelow >= popoverRect.height || spaceBelow > spaceAbove) {
-      popover.classList.add("popover-below");
+    let direction;
+    if (spaceBelow > popoverRect.height) {
+      direction = "bottom";
+      popover.style.top = "100%";
+      popover.style.left = "50%";
+      popover.style.transform = "translate(-50%, 0)";
+    } else if (spaceAbove > popoverRect.height) {
+      direction = "top";
+      popover.style.top = "0";
+      popover.style.left = "50%";
+      popover.style.transform = "translate(-50%, -100%)";
+    } else if (spaceRight > popoverRect.width) {
+      direction = "right";
+      popover.style.top = "50%";
+      popover.style.left = "100%";
+      popover.style.transform = "translate(0, -50%)";
     } else {
-      popover.classList.add("popover-above");
+      direction = "left";
+      popover.style.top = "50%";
+      popover.style.left = "0";
+      popover.style.transform = "translate(-100%, -50%)";
     }
 
-    popover.style.visibility = "visible";
     popover.classList.add("visible");
   });
 }
